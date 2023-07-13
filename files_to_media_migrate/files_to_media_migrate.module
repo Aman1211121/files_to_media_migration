@@ -1,0 +1,115 @@
+<?php
+
+/**
+ * @file
+ * Migrating File Entity to Media Entity.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function files_to_media_migrate_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the files_to_media_migrate.
+    case 'help.page.files_to_media_migrate':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('The  Files To Media Migrate allows user to migrate files entity to media entity with drush batch command.') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements migrating_files_to_media()
+ */
+function files_to_media_migrate_migrating_files_to_media($entity_id, $field_name, $type, $entity_type) {
+
+  // Media field name.
+  $field_name_length = strlen($field_name);
+  $new_field = $field_name;
+  if ($field_name_length >= 29) {
+    $new_field = substr_replace($field_name, "", -6);
+
+  }
+  $media_field_name = $new_field . '_media';
+  $count = 0;
+
+  foreach ($entity_id as $entity_obj) {
+    $entity = \Drupal::entityTypeManager()->getStorage($entity_type)->load($entity_obj->entity_id);
+    $field_type = $entity->get($field_name)->getFieldDefinition()->getType();
+    if ($entity->hasField($field_name) && $entity->get($field_name)->isEmpty() === FALSE && $entity->hasField($media_field_name) && empty($entity->get($media_field_name)->getValue())) {
+
+      $files = $entity->get($field_name)->getValue();
+      $entity->set($media_field_name, NULL);
+
+      foreach ($files as $file) {
+        // If field type = image.
+        if ($type == 'image' && $field_type == 'image') {
+          $media = \Drupal::entityTypeManager()
+            ->getStorage('media')
+            ->create([
+              'bundle' => 'image',
+              'uid' => 1,
+            ]);
+          $media->set('field_media_image', $file);
+          $media->save();
+          $count++;
+          $entity->get($media_field_name)->appendItem($media);
+        }
+        // If field type = files.
+        if ($type == 'file' && $field_type == 'file') {
+          $media = \Drupal::entityTypeManager()
+            ->getStorage('media')
+            ->create([
+              'bundle' => 'document',
+              'uid' => 1,
+            ]);
+          $media->set('field_media_document', $file);
+          $media->save();
+          $count++;
+          $entity->get($media_field_name)->appendItem($media);
+        }
+        // If field type = video.
+        if ($type == 'video') {
+          $media = \Drupal::entityTypeManager()
+            ->getStorage('media')
+            ->create([
+              'bundle' => 'video',
+              'uid' => 1,
+            ]);
+          $media->set('field_media_video_file', $file);
+          $media->save();
+          $count++;
+          $entity->get($media_field_name)->appendItem($media);
+        }
+        // If field type = Audio.
+        if ($type == 'audio') {
+          $media = \Drupal::entityTypeManager()
+            ->getStorage('media')
+            ->create([
+              'bundle' => 'audio',
+              'uid' => 1,
+            ]);
+          $media->set('field_media_audio_file', $file);
+          $media->save();
+          $count++;
+          $entity->get($media_field_name)->appendItem($media);
+        }
+      }
+      $entity->save();
+    }
+  }
+  if ($type != $field_type) {
+    \Drupal::logger('file_to_media')->notice('You entered the wrong field type.');
+  }
+  elseif ($count == 0) {
+    \Drupal::logger('file_to_media')->notice('No content needs to be migrated in batch.');
+  }
+  else {
+    \Drupal::logger('file_to_media')->notice($count . ' ' . $type . ' are migrated successfully.');
+  }
+}

@@ -1,0 +1,13 @@
+services:
+  files_to_media_migrate.commands:
+    class: \Drupal\files_to_media_migrate\Commands\FilesToMediaMigrate
+    public: true
+    arguments:
+      - '@entity_field.manager'
+      - '@entity_type.manager'
+      - '@database'
+      - '@plugin.manager.migration'
+      - '@stream_wrapper_manager'      
+      - '@string_translation'
+    tags:
+    - { name: drush.command }

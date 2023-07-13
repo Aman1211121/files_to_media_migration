@@ -1,0 +1,14 @@
+{
+    "name": "drupal/files_to_media_migrate",
+    "description": "The  files_to_media_migrate allows user to migrate files entity to media entity with drush command",
+    "type": "drupal-module",
+    "license": "GPL-2.0-or-later",
+    "minimum-stability": "stable",
+    "authors": [
+        {
+            "name": "Vivek kumar",
+            "email": "vivekkumar.lnweb@gmail.com"
+        }
+    ],
+    "require": {}
+}

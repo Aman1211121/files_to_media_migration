@@ -1,0 +1,11 @@
+name: Files To Media Migrate
+type: module
+description: Migrate file fields to media fields using Drush batch Command.
+package: Migration
+core_version_requirement: ^9 || ^10
+dependencies:
+- drupal:media
+- drupal:media_library
+- drupal:file
+- drupal:migrate
+- drupal:migrate_drupal
